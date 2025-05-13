@@ -1,18 +1,27 @@
+import http from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import GameManager from "./GameManager";
 
-
-const wss=new WebSocketServer({
-    port:3000
+// Create a basic HTTP server to satisfy Render
+const server = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("WebSocket server is running");
 });
 
-const gameManager= new GameManager();
+const wss = new WebSocketServer({ server });
 
-wss.on('connection', (socket: WebSocket)=>{
-    gameManager.addUser(socket);
-    socket.on('close', ()=>{
-        gameManager.removeUser(socket);
-    });
+const gameManager = new GameManager();
+
+wss.on("connection", (socket: WebSocket) => {
+  console.log("Client connected");
+  gameManager.addUser(socket);
+  socket.on("close", () => {
+    gameManager.removeUser(socket);
+  });
 });
 
-console.log('Done');
+// Use Render's assigned port
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`WebSocket server running on port ${PORT}`);
+});
